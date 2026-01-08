@@ -262,6 +262,23 @@ def auth_test():
             </div>
 
             <div class="section">
+                <h3>Alternative Method: Manual API Test</h3>
+                <p>If Step 3 shows 0 pages, try this alternative approach using Graph API Explorer:</p>
+                <ol style="text-align: left;">
+                    <li>Go to <a href="https://developers.facebook.com/tools/explorer" target="_blank">Graph API Explorer</a></li>
+                    <li>Select your app: <strong>{FB_APP_ID}</strong></li>
+                    <li>Click "Generate Access Token"</li>
+                    <li>Grant permissions: <code>pages_show_list</code>, <code>instagram_basic</code>, <code>pages_manage_metadata</code></li>
+                    <li>In the query box, enter: <code>me/accounts?fields=id,name,instagram_business_account</code></li>
+                    <li>Click "Submit" and see if your page appears</li>
+                </ol>
+                <p style="margin-top: 15px;">Copy your access token from Graph Explorer:</p>
+                <input type="text" id="manualToken" placeholder="Paste access token here" style="width: 100%; padding: 10px; margin: 5px 0; font-family: monospace; font-size: 12px;">
+                <button onclick="testManualToken()">Test This Token</button>
+                <div id="manualTestResult"></div>
+            </div>
+
+            <div class="section">
                 <h3>Step 4: Subscribe to Webhooks (Manual)</h3>
                 <p>After getting your Instagram Business Account ID above, you can subscribe to webhooks:</p>
                 <pre id="curlCommand">Loading...</pre>
@@ -361,38 +378,76 @@ def auth_test():
             function getInstagramAccount() {{
                 // First get Facebook Pages
                 FB.api('/me/accounts', {{ fields: 'id,name,access_token,instagram_business_account' }}, function(response) {{
-                    if (response && !response.error) {{
-                        pages = response.data;
-                        let html = '<div class="result">';
-                        html += '<h4>Facebook Pages (' + pages.length + '):</h4>';
+                    let html = '';
 
-                        pages.forEach(function(page) {{
-                            html += '<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px;">';
-                            html += '<strong>' + page.name + '</strong><br>';
-                            html += 'Page ID: ' + page.id + '<br>';
+                    // Debug: Show raw response
+                    html += '<div class="info" style="margin-bottom: 15px;">';
+                    html += '<h4>🔍 Debug: Raw API Response</h4>';
+                    html += '<pre style="max-height: 200px; overflow-y: auto;">' + JSON.stringify(response, null, 2) + '</pre>';
+                    html += '</div>';
 
-                            if (page.instagram_business_account) {{
-                                igAccountId = page.instagram_business_account.id;
-                                html += '<span style="color: green;">✓ Instagram Business Account Connected!</span><br>';
-                                html += 'Instagram Business Account ID: <strong>' + page.instagram_business_account.id + '</strong><br>';
-
-                                // Get Instagram account details
-                                getIgAccountDetails(page.instagram_business_account.id, page.access_token);
-
-                                // Update curl command
-                                updateCurlCommand(page.access_token, page.instagram_business_account.id);
-                            }} else {{
-                                html += '<span style="color: orange;">⚠ No Instagram Business Account connected</span><br>';
-                            }}
-                            html += '</div>';
-                        }});
-
+                    if (response && response.error) {{
+                        html += '<div class="error">';
+                        html += '<strong>API Error:</strong><br>';
+                        html += 'Code: ' + response.error.code + '<br>';
+                        html += 'Message: ' + response.error.message + '<br>';
+                        html += 'Type: ' + response.error.type + '<br>';
                         html += '</div>';
                         document.getElementById('igAccountResult').innerHTML = html;
-                    }} else {{
-                        document.getElementById('igAccountResult').innerHTML =
-                            '<div class="error">Error: ' + JSON.stringify(response.error) + '</div>';
+                        return;
                     }}
+
+                    if (response && response.data) {{
+                        pages = response.data;
+                        html += '<div class="result">';
+                        html += '<h4>Facebook Pages (' + pages.length + '):</h4>';
+
+                        if (pages.length === 0) {{
+                            html += '<div class="error">';
+                            html += '<strong>No Pages Found</strong><br>';
+                            html += '<p>Possible reasons:</p>';
+                            html += '<ul style="text-align: left; margin-left: 20px;">';
+                            html += '<li>You don\'t have any Facebook Pages where you\'re an Admin or Editor</li>';
+                            html += '<li>Your app needs to be added to Business Manager</li>';
+                            html += '<li>Try adding <code>pages_manage_metadata</code> permission</li>';
+                            html += '</ul>';
+                            html += '<p><strong>Next steps:</strong></p>';
+                            html += '<ol style="text-align: left; margin-left: 20px;">';
+                            html += '<li>Go to <a href="https://www.facebook.com/pages" target="_blank">facebook.com/pages</a></li>';
+                            html += '<li>Create a new Page if you don\'t have one</li>';
+                            html += '<li>Make sure you\'re an Admin on the page</li>';
+                            html += '<li>Try the "Alternative Method" below</li>';
+                            html += '</ol>';
+                            html += '</div>';
+                        }} else {{
+                            pages.forEach(function(page) {{
+                                html += '<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px;">';
+                                html += '<strong>' + page.name + '</strong><br>';
+                                html += 'Page ID: ' + page.id + '<br>';
+
+                                if (page.instagram_business_account) {{
+                                    igAccountId = page.instagram_business_account.id;
+                                    html += '<span style="color: green;">✓ Instagram Business Account Connected!</span><br>';
+                                    html += 'Instagram Business Account ID: <strong>' + page.instagram_business_account.id + '</strong><br>';
+
+                                    // Get Instagram account details
+                                    getIgAccountDetails(page.instagram_business_account.id, page.access_token);
+
+                                    // Update curl command
+                                    updateCurlCommand(page.access_token, page.instagram_business_account.id);
+                                }} else {{
+                                    html += '<span style="color: orange;">⚠ No Instagram Business Account connected</span><br>';
+                                }}
+                                html += '</div>';
+                            }});
+                        }}
+
+                        html += '</div>';
+                    }} else {{
+                        html += '<div class="error">Unexpected response format</div>';
+                    }}
+
+                    document.getElementById('igAccountResult').innerHTML = html;
                 }});
             }}
 
@@ -423,6 +478,42 @@ def auth_test():
                 cmd = cmd.replace(/\\${{pageAccessToken}}/g, pageAccessToken);
 
                 document.getElementById('curlCommand').textContent = cmd;
+            }}
+
+            function testManualToken() {{
+                let token = document.getElementById('manualToken').value.trim();
+                if (!token) {{
+                    document.getElementById('manualTestResult').innerHTML =
+                        '<div class="error">Please paste an access token</div>';
+                    return;
+                }}
+
+                fetch('https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=' + token)
+                    .then(response => response.json())
+                    .then(data => {{
+                        let html = '<div class="result" style="margin-top: 10px;">';
+                        html += '<h4>Manual Token Test Result:</h4>';
+                        html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+
+                        if (data.data && data.data.length > 0) {{
+                            html += '<div style="margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 4px;">';
+                            html += '<strong style="color: green;">✓ Success! Found ' + data.data.length + ' page(s)</strong>';
+
+                            data.data.forEach(function(page) {{
+                                if (page.instagram_business_account) {{
+                                    html += '<p>Instagram Business Account ID: <strong>' + page.instagram_business_account.id + '</strong></p>';
+                                    updateCurlCommand(page.access_token, page.instagram_business_account.id);
+                                }}
+                            }});
+                            html += '</div>';
+                        }}
+                        html += '</div>';
+                        document.getElementById('manualTestResult').innerHTML = html;
+                    }})
+                    .catch(error => {{
+                        document.getElementById('manualTestResult').innerHTML =
+                            '<div class="error">Error: ' + error.message + '</div>';
+                    }});
             }}
 
             function copyToClipboard() {{
