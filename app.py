@@ -234,12 +234,13 @@ def auth_test():
 
             <div class="scopes">
                 <h3>Scopes We'll Request</h3>
-                <div class="scope-item"><span class="required">Core:</span> <code>instagram_basic</code> - Base Instagram access</div>
+                <div class="scope-item"><span class="required">Core:</span> <code>instagram_basic</code> - Base Instagram access (mentions, comments webhooks)</div>
                 <div class="scope-item"><span class="required">Core:</span> <code>instagram_manage_messages</code> - DM webhooks</div>
-                <div class="scope-item"><span class="required">Core:</span> <code>instagram_manage_comments</code> - Comment webhooks</div>
                 <div class="scope-item"><span class="required">Core:</span> <code>pages_show_list</code> - List Facebook Pages</div>
-                <div class="scope-item">Optional: <code>pages_read_engagement</code> - Page engagement</div>
-                <div class="scope-item">Optional: <code>instagram_manage_insights</code> - Analytics</div>
+                <div class="scope-item">Optional: <code>pages_read_engagement</code> - Page engagement data</div>
+                <div class="scope-item">Optional: <code>instagram_content_publish</code> - Publish content</div>
+                <div class="scope-item" style="color: #999;"><strike>instagram_manage_comments</strike> - Not available via Facebook Login</div>
+                <div class="scope-item" style="color: #999;"><strike>instagram_manage_insights</strike> - Not available via Facebook Login</div>
             </div>
 
             <div class="section">
@@ -311,7 +312,7 @@ def auth_test():
                             '<div class="error">Login failed or was cancelled</div>';
                     }}
                 }}, {{
-                    scope: 'instagram_basic,instagram_manage_messages,instagram_manage_comments,pages_show_list,pages_read_engagement,instagram_manage_insights',
+                    scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_read_engagement,instagram_content_publish',
                     auth_type: 'rerequest'
                 }});
             }}
