@@ -407,15 +407,15 @@ def auth_test():
                             html += '<strong>No Pages Found</strong><br>';
                             html += '<p>Possible reasons:</p>';
                             html += '<ul style="text-align: left; margin-left: 20px;">';
-                            html += '<li>You don\'t have any Facebook Pages where you\'re an Admin or Editor</li>';
+                            html += '<li>You do not have any Facebook Pages where you are an Admin or Editor</li>';
                             html += '<li>Your app needs to be added to Business Manager</li>';
                             html += '<li>Try adding <code>pages_manage_metadata</code> permission</li>';
                             html += '</ul>';
                             html += '<p><strong>Next steps:</strong></p>';
                             html += '<ol style="text-align: left; margin-left: 20px;">';
                             html += '<li>Go to <a href="https://www.facebook.com/pages" target="_blank">facebook.com/pages</a></li>';
-                            html += '<li>Create a new Page if you don\'t have one</li>';
-                            html += '<li>Make sure you\'re an Admin on the page</li>';
+                            html += '<li>Create a new Page if you do not have one</li>';
+                            html += '<li>Make sure you are an Admin on the page</li>';
                             html += '<li>Try the "Alternative Method" below</li>';
                             html += '</ol>';
                             html += '</div>';
