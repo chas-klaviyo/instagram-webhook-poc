@@ -197,7 +197,7 @@ def webhook():
 @app.route('/auth')
 def auth_test():
     """Facebook Login test page"""
-    html = f"""
+    html = """
     <!DOCTYPE html>
     <html>
     <head>
@@ -529,7 +529,7 @@ def auth_test():
         </script>
     </body>
     </html>
-    """
+    """.format(FB_APP_ID=FB_APP_ID)
     return html
 
 
