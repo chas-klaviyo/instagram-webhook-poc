@@ -434,8 +434,8 @@ def auth_test():
                                     // Get Instagram account details
                                     getIgAccountDetails(page.instagram_business_account.id, page.access_token);
 
-                                    // Update curl command
-                                    updateCurlCommand(page.access_token, page.instagram_business_account.id);
+                                    // Update curl command - USE PAGE ID, not IG account ID!
+                                    updateCurlCommand(page.access_token, page.id, page.instagram_business_account.id);
                                 }} else {{
                                     html += '<span style="color: orange;">⚠ No Instagram Business Account connected</span><br>';
                                 }}
