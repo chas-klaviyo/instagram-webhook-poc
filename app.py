@@ -467,15 +467,20 @@ def auth_test():
                     }});
             }}
 
-            function updateCurlCommand(pageAccessToken, igAccountId) {{
-                let cmd = `# Subscribe to Instagram webhooks\\n`;
-                cmd += `curl -X POST "https://graph.facebook.com/v21.0/${{igAccountId}}/subscribed_apps" \\\\\\n`;
+            function updateCurlCommand(pageAccessToken, pageId, igAccountId) {{
+                let cmd = `# IMPORTANT: Subscribe using Facebook PAGE ID, not Instagram Account ID!\\n\\n`;
+                cmd += `# Subscribe to Instagram webhooks via Facebook Page\\n`;
+                cmd += `curl -X POST "https://graph.facebook.com/v21.0/${{pageId}}/subscribed_apps" \\\\\\n`;
                 cmd += `  -d "access_token=${{pageAccessToken}}" \\\\\\n`;
                 cmd += `  -d "subscribed_fields=messages,comments,mentions"\\n\\n`;
                 cmd += `# Check subscription status\\n`;
-                cmd += `curl "https://graph.facebook.com/v21.0/${{igAccountId}}/subscribed_apps?access_token=${{pageAccessToken}}"`;
+                cmd += `curl "https://graph.facebook.com/v21.0/${{pageId}}/subscribed_apps?access_token=${{pageAccessToken}}"\\n\\n`;
+                cmd += `# For reference:\\n`;
+                cmd += `# Facebook Page ID: ${{pageId}}\\n`;
+                cmd += `# Instagram Business Account ID: ${{igAccountId}}`;
 
-                cmd = cmd.replace('${{igAccountId}}', igAccountId);
+                cmd = cmd.replace(/\\${{pageId}}/g, pageId);
+                cmd = cmd.replace(/\\${{igAccountId}}/g, igAccountId);
                 cmd = cmd.replace(/\\${{pageAccessToken}}/g, pageAccessToken);
 
                 document.getElementById('curlCommand').textContent = cmd;
@@ -502,8 +507,9 @@ def auth_test():
 
                             data.data.forEach(function(page) {{
                                 if (page.instagram_business_account) {{
+                                    html += '<p>Facebook Page ID: <strong>' + page.id + '</strong></p>';
                                     html += '<p>Instagram Business Account ID: <strong>' + page.instagram_business_account.id + '</strong></p>';
-                                    updateCurlCommand(page.access_token, page.instagram_business_account.id);
+                                    updateCurlCommand(page.access_token, page.id, page.instagram_business_account.id);
                                 }}
                             }});
                             html += '</div>';
