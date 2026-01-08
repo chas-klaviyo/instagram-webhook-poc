@@ -239,10 +239,10 @@ def auth_test():
                 <div class="scope-item"><span class="required">Core:</span> <code>pages_show_list</code> - List Facebook Pages</div>
                 <div class="scope-item"><span class="required">Core:</span> <code>business_management</code> - Manage Business assets</div>
                 <div class="scope-item">Optional: <code>pages_read_engagement</code> - Page engagement data</div>
-                <div class="scope-item">Optional: <code>pages_manage_metadata</code> - Manage page metadata</div>
                 <div class="scope-item">Optional: <code>instagram_content_publish</code> - Publish content</div>
                 <div class="scope-item" style="color: #999;"><strike>instagram_manage_comments</strike> - Not available via Facebook Login</div>
                 <div class="scope-item" style="color: #999;"><strike>instagram_manage_insights</strike> - Not available via Facebook Login</div>
+                <div class="scope-item" style="color: #999;"><strike>pages_manage_metadata</strike> - Not available via Facebook Login</div>
             </div>
 
             <div class="section">
@@ -270,7 +270,7 @@ def auth_test():
                     <li>Go to <a href="https://developers.facebook.com/tools/explorer" target="_blank">Graph API Explorer</a></li>
                     <li>Select your app: <strong>{FB_APP_ID}</strong></li>
                     <li>Click "Generate Access Token"</li>
-                    <li>Grant permissions: <code>pages_show_list</code>, <code>instagram_basic</code>, <code>business_management</code>, <code>pages_manage_metadata</code></li>
+                    <li>Grant permissions: <code>pages_show_list</code>, <code>instagram_basic</code>, <code>business_management</code></li>
                     <li>In the query box, enter: <code>me/accounts?fields=id,name,instagram_business_account</code></li>
                     <li>Click "Submit" and see if your page appears</li>
                 </ol>
@@ -331,7 +331,7 @@ def auth_test():
                             '<div class="error">Login failed or was cancelled</div>';
                     }}
                 }}, {{
-                    scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_read_engagement,instagram_content_publish,business_management,pages_manage_metadata',
+                    scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_read_engagement,instagram_content_publish,business_management',
                     auth_type: 'rerequest'
                 }});
             }}
