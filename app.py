@@ -10,6 +10,7 @@ app = Flask(__name__)
 # Get from environment variables
 VERIFY_TOKEN = os.environ.get('VERIFY_TOKEN', 'my_verify_token_12345')
 APP_SECRET = os.environ.get('APP_SECRET', '')
+FB_APP_ID = os.environ.get('FB_APP_ID', '758214417322401')
 
 # Store recent webhooks for inspection
 recent_webhooks = []
@@ -67,6 +68,7 @@ def index():
     <body>
         <div class="container">
             <h1>Instagram Webhook POC</h1>
+            <p><a href="/auth" style="color: #1877f2; text-decoration: none; font-weight: bold;">→ Test Facebook Login & Scopes</a></p>
 
             <div class="info-box">
                 <h3>Configuration</h3>
@@ -192,6 +194,253 @@ def webhook():
         return jsonify({'status': 'ok'}), 200
 
 
+@app.route('/auth')
+def auth_test():
+    """Facebook Login test page"""
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Instagram/Facebook Auth Test</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
+            .container {{ max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }}
+            h1 {{ color: #333; }}
+            .section {{ margin: 30px 0; padding: 20px; background: #f9f9f9; border-radius: 5px; }}
+            .scopes {{ background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+            .scope-item {{ margin: 5px 0; }}
+            .required {{ color: #d32f2f; font-weight: bold; }}
+            button {{ background: #1877f2; color: white; border: none; padding: 12px 24px;
+                      font-size: 16px; border-radius: 5px; cursor: pointer; margin: 10px 5px; }}
+            button:hover {{ background: #166fe5; }}
+            button:disabled {{ background: #ccc; cursor: not-allowed; }}
+            .result {{ background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 10px 0; }}
+            .error {{ background: #ffebee; color: #c62828; padding: 15px; border-radius: 5px; margin: 10px 0; }}
+            pre {{ background: #263238; color: #aed581; padding: 15px; border-radius: 4px; overflow-x: auto; }}
+            .token {{ word-break: break-all; font-family: monospace; font-size: 12px; }}
+            .info {{ background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 10px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Instagram/Facebook Auth Test</h1>
+            <p><a href="/">← Back to Webhook Dashboard</a></p>
+
+            <div class="info">
+                <h3>Testing Facebook Login for Instagram API</h3>
+                <p>This page helps you test the Facebook Login flow and verify which scopes are granted.</p>
+                <p><strong>App ID:</strong> {FB_APP_ID}</p>
+            </div>
+
+            <div class="scopes">
+                <h3>Scopes We'll Request</h3>
+                <div class="scope-item"><span class="required">Core:</span> <code>instagram_basic</code> - Base Instagram access</div>
+                <div class="scope-item"><span class="required">Core:</span> <code>instagram_manage_messages</code> - DM webhooks</div>
+                <div class="scope-item"><span class="required">Core:</span> <code>instagram_manage_comments</code> - Comment webhooks</div>
+                <div class="scope-item"><span class="required">Core:</span> <code>pages_show_list</code> - List Facebook Pages</div>
+                <div class="scope-item">Optional: <code>pages_read_engagement</code> - Page engagement</div>
+                <div class="scope-item">Optional: <code>instagram_manage_insights</code> - Analytics</div>
+            </div>
+
+            <div class="section">
+                <h3>Step 1: Login with Facebook</h3>
+                <button id="loginBtn" onclick="fbLogin()">Login with Facebook</button>
+                <div id="loginStatus"></div>
+            </div>
+
+            <div class="section">
+                <h3>Step 2: Check Granted Permissions</h3>
+                <button id="checkPermsBtn" onclick="checkPermissions()" disabled>Check My Permissions</button>
+                <div id="permissionsResult"></div>
+            </div>
+
+            <div class="section">
+                <h3>Step 3: Get Instagram Business Account</h3>
+                <button id="getIgBtn" onclick="getInstagramAccount()" disabled>Get Instagram Business Account</button>
+                <div id="igAccountResult"></div>
+            </div>
+
+            <div class="section">
+                <h3>Step 4: Subscribe to Webhooks (Manual)</h3>
+                <p>After getting your Instagram Business Account ID above, you can subscribe to webhooks:</p>
+                <pre id="curlCommand">Loading...</pre>
+                <button onclick="copyToClipboard()">Copy Command</button>
+            </div>
+        </div>
+
+        <script>
+            let accessToken = null;
+            let userId = null;
+            let pages = [];
+            let igAccountId = null;
+
+            window.fbAsyncInit = function() {{
+                FB.init({{
+                    appId      : '{FB_APP_ID}',
+                    cookie     : true,
+                    xfbml      : true,
+                    version    : 'v21.0'
+                }});
+
+                // Check login status on load
+                FB.getLoginStatus(function(response) {{
+                    if (response.status === 'connected') {{
+                        accessToken = response.authResponse.accessToken;
+                        userId = response.authResponse.userID;
+                        showLoginSuccess();
+                    }}
+                }});
+            }};
+
+            (function(d, s, id){{
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }}(document, 'script', 'facebook-jssdk'));
+
+            function fbLogin() {{
+                FB.login(function(response) {{
+                    if (response.status === 'connected') {{
+                        accessToken = response.authResponse.accessToken;
+                        userId = response.authResponse.userID;
+                        showLoginSuccess();
+                    }} else {{
+                        document.getElementById('loginStatus').innerHTML =
+                            '<div class="error">Login failed or was cancelled</div>';
+                    }}
+                }}, {{
+                    scope: 'instagram_basic,instagram_manage_messages,instagram_manage_comments,pages_show_list,pages_read_engagement,instagram_manage_insights',
+                    auth_type: 'rerequest'
+                }});
+            }}
+
+            function showLoginSuccess() {{
+                document.getElementById('loginStatus').innerHTML =
+                    '<div class="result"><strong>✓ Login successful!</strong><br>' +
+                    'User ID: ' + userId + '<br>' +
+                    'Access Token: <span class="token">' + accessToken + '</span></div>';
+                document.getElementById('checkPermsBtn').disabled = false;
+                document.getElementById('getIgBtn').disabled = false;
+            }}
+
+            function checkPermissions() {{
+                FB.api('/me/permissions', function(response) {{
+                    if (response && !response.error) {{
+                        let granted = [];
+                        let declined = [];
+
+                        response.data.forEach(function(perm) {{
+                            if (perm.status === 'granted') {{
+                                granted.push(perm.permission);
+                            }} else {{
+                                declined.push(perm.permission);
+                            }}
+                        }});
+
+                        let html = '<div class="result">';
+                        html += '<h4>Granted Permissions (' + granted.length + '):</h4>';
+                        html += '<pre>' + JSON.stringify(granted, null, 2) + '</pre>';
+
+                        if (declined.length > 0) {{
+                            html += '<h4>Declined Permissions:</h4>';
+                            html += '<pre>' + JSON.stringify(declined, null, 2) + '</pre>';
+                        }}
+                        html += '</div>';
+
+                        document.getElementById('permissionsResult').innerHTML = html;
+                    }} else {{
+                        document.getElementById('permissionsResult').innerHTML =
+                            '<div class="error">Error: ' + JSON.stringify(response.error) + '</div>';
+                    }}
+                }});
+            }}
+
+            function getInstagramAccount() {{
+                // First get Facebook Pages
+                FB.api('/me/accounts', {{ fields: 'id,name,access_token,instagram_business_account' }}, function(response) {{
+                    if (response && !response.error) {{
+                        pages = response.data;
+                        let html = '<div class="result">';
+                        html += '<h4>Facebook Pages (' + pages.length + '):</h4>';
+
+                        pages.forEach(function(page) {{
+                            html += '<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px;">';
+                            html += '<strong>' + page.name + '</strong><br>';
+                            html += 'Page ID: ' + page.id + '<br>';
+
+                            if (page.instagram_business_account) {{
+                                igAccountId = page.instagram_business_account.id;
+                                html += '<span style="color: green;">✓ Instagram Business Account Connected!</span><br>';
+                                html += 'Instagram Business Account ID: <strong>' + page.instagram_business_account.id + '</strong><br>';
+
+                                // Get Instagram account details
+                                getIgAccountDetails(page.instagram_business_account.id, page.access_token);
+
+                                // Update curl command
+                                updateCurlCommand(page.access_token, page.instagram_business_account.id);
+                            }} else {{
+                                html += '<span style="color: orange;">⚠ No Instagram Business Account connected</span><br>';
+                            }}
+                            html += '</div>';
+                        }});
+
+                        html += '</div>';
+                        document.getElementById('igAccountResult').innerHTML = html;
+                    }} else {{
+                        document.getElementById('igAccountResult').innerHTML =
+                            '<div class="error">Error: ' + JSON.stringify(response.error) + '</div>';
+                    }}
+                }});
+            }}
+
+            function getIgAccountDetails(igAccountId, pageAccessToken) {{
+                fetch('https://graph.facebook.com/v21.0/' + igAccountId +
+                      '?fields=id,username,name,profile_picture_url&access_token=' + pageAccessToken)
+                    .then(response => response.json())
+                    .then(data => {{
+                        let html = '<div class="result" style="margin-top: 10px;">';
+                        html += '<h4>Instagram Account Details:</h4>';
+                        html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                        html += '</div>';
+
+                        let currentHtml = document.getElementById('igAccountResult').innerHTML;
+                        document.getElementById('igAccountResult').innerHTML = currentHtml + html;
+                    }});
+            }}
+
+            function updateCurlCommand(pageAccessToken, igAccountId) {{
+                let cmd = `# Subscribe to Instagram webhooks\\n`;
+                cmd += `curl -X POST "https://graph.facebook.com/v21.0/${{igAccountId}}/subscribed_apps" \\\\\\n`;
+                cmd += `  -d "access_token=${{pageAccessToken}}" \\\\\\n`;
+                cmd += `  -d "subscribed_fields=messages,comments,mentions"\\n\\n`;
+                cmd += `# Check subscription status\\n`;
+                cmd += `curl "https://graph.facebook.com/v21.0/${{igAccountId}}/subscribed_apps?access_token=${{pageAccessToken}}"`;
+
+                cmd = cmd.replace('${{igAccountId}}', igAccountId);
+                cmd = cmd.replace(/\\${{pageAccessToken}}/g, pageAccessToken);
+
+                document.getElementById('curlCommand').textContent = cmd;
+            }}
+
+            function copyToClipboard() {{
+                let text = document.getElementById('curlCommand').textContent;
+                navigator.clipboard.writeText(text).then(function() {{
+                    alert('Copied to clipboard!');
+                }});
+            }}
+
+            // Initialize curl command placeholder
+            document.getElementById('curlCommand').textContent =
+                '# Complete steps 1-3 first to generate subscription commands';
+        </script>
+    </body>
+    </html>
+    """
+    return html
+
+
 @app.route('/health')
 def health():
     """Health check endpoint"""
@@ -199,7 +448,8 @@ def health():
         'status': 'healthy',
         'webhooks_received': len(recent_webhooks),
         'verify_token_set': bool(VERIFY_TOKEN),
-        'app_secret_set': bool(APP_SECRET)
+        'app_secret_set': bool(APP_SECRET),
+        'fb_app_id': FB_APP_ID
     })
 
 
