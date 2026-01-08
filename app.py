@@ -44,24 +44,24 @@ def index():
     <head>
         <title>Instagram Webhook POC</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-            .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
-            h1 { color: #333; }
-            .info-box { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
-            .webhook { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #4CAF50; border-radius: 4px; }
-            .webhook-header { font-weight: bold; color: #333; margin-bottom: 10px; }
-            pre { background: #263238; color: #aed581; padding: 15px; border-radius: 4px; overflow-x: auto; }
-            .scopes { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; }
-            .scope-item { margin: 5px 0; }
-            .required { color: #d32f2f; font-weight: bold; }
-            .optional { color: #f57c00; }
-            .status { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 12px; }
-            .status-verified { background: #4CAF50; color: white; }
-            .status-unverified { background: #ff9800; color: white; }
+            body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
+            .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }}
+            h1 {{ color: #333; }}
+            .info-box {{ background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+            .webhook {{ background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #4CAF50; border-radius: 4px; }}
+            .webhook-header {{ font-weight: bold; color: #333; margin-bottom: 10px; }}
+            pre {{ background: #263238; color: #aed581; padding: 15px; border-radius: 4px; overflow-x: auto; }}
+            .scopes {{ background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+            .scope-item {{ margin: 5px 0; }}
+            .required {{ color: #d32f2f; font-weight: bold; }}
+            .optional {{ color: #f57c00; }}
+            .status {{ display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 12px; }}
+            .status-verified {{ background: #4CAF50; color: white; }}
+            .status-unverified {{ background: #ff9800; color: white; }}
         </style>
         <script>
             // Auto-refresh every 5 seconds
-            setTimeout(function(){ location.reload(); }, 5000);
+            setTimeout(function(){{ location.reload(); }}, 5000);
         </script>
     </head>
     <body>
